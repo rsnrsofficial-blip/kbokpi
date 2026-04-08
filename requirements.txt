@@ -5,3 +5,4 @@ beautifulsoup4
 anthropic
 supabase
 python-dotenv
+httpx

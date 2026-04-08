@@ -216,7 +216,8 @@ def crawl_player(name: str) -> dict:
         "daily_wage_display": f"{season_grade['daily_wage']:,}만원",
         "season_stats": display_stats, "season_grade": season_grade,
         "today_stats": today_stats, "today_grade": today_grade,
-        "photo_url": photo_url, "crawled_at": date.today().isoformat(),
+        "photo_url": photo_url,
+        "player_id": player_info["player_id"], "crawled_at": date.today().isoformat(),
     }
 
     comment = generate_ai_comment(data)

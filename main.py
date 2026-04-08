@@ -53,3 +53,15 @@ async def get_player(name: str):
 @app.get("/health")
 def health():
     return {"status": "healthy", "date": date.today().isoformat()}
+
+import httpx
+from fastapi.responses import Response
+
+@app.get("/photo/{player_id}")
+async def proxy_photo(player_id: str):
+    from datetime import date as _date
+    year = _date.today().year
+    url = f"https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/middle/{year}/{player_id}.jpg"
+    async with httpx.AsyncClient() as client:
+        res = await client.get(url, headers={"Referer": "https://www.koreabaseball.com"}, timeout=5)
+        return Response(content=res.content, media_type="image/jpeg")
