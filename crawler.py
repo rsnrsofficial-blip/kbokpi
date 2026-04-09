@@ -109,7 +109,7 @@ def get_today_stats(daily_records: list) -> dict:
 
 
 def get_today_schedule(team: str) -> dict:
-    """오늘 해당 팀 예정 경기"""
+    """오늘 해당 팀 예정 경기 - smsScore div 기반"""
     today = date.today().strftime("%Y%m%d")
     try:
         res = requests.get(
@@ -118,18 +118,17 @@ def get_today_schedule(team: str) -> dict:
             headers=HEADERS, timeout=10
         )
         soup = BeautifulSoup(res.text, "html.parser")
-        full_text = soup.get_text()
+        VENUE_LIST = ["잠실","고척","수원","대전","광주","인천","창원","대구","사직","포항","청주"]
 
-        tables = soup.select("table")
-        for t in tables:
-            table_text = t.get_text()
-            teams_in = [tm for tm in ALL_TEAMS if tm in table_text]
+        for box in soup.select("div.smsScore"):
+            box_text = box.get_text()
+            teams_in = [t for t in ALL_TEAMS if t in box_text]
             if team in teams_in and len(teams_in) >= 2:
-                opponent = next((tm for tm in teams_in if tm != team), "")
-                times = re.findall(r'\d{2}:\d{2}', table_text)
-                game_time = times[0] if times else "18:30"
-                venues = re.findall(r'(잠실|고척|수원|대전|광주|인천|창원|대구|사직|포항|청주)', full_text)
+                opponent = next((t for t in teams_in if t != team), "")
+                venues = [v for v in VENUE_LIST if v in box_text]
                 venue = venues[0] if venues else ""
+                times = re.findall(r'\d{2}:\d{2}', box_text)
+                game_time = times[0] if times else "18:30"
                 return {
                     "scheduled": True,
                     "opponent": opponent,
@@ -137,17 +136,6 @@ def get_today_schedule(team: str) -> dict:
                     "venue": venue,
                     "note": f"오늘 {game_time} vs {opponent} ({venue})"
                 }
-
-        if team in full_text:
-            times = re.findall(r'\d{2}:\d{2}', full_text)
-            venues = re.findall(r'(잠실|고척|수원|대전|광주|인천|창원|대구|사직|포항|청주)', full_text)
-            return {
-                "scheduled": True,
-                "opponent": "",
-                "time": times[0] if times else "18:30",
-                "venue": venues[0] if venues else "",
-                "note": f"오늘 경기 예정"
-            }
 
         return {"scheduled": False, "note": "오늘 경기 없음"}
     except:
